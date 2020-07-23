@@ -1,0 +1,52 @@
+- name: Enable PXE boot on dnsmasq
+  template:
+    src: '{{ item.src }}'
+    dest:  '{{ item.dest }}'
+  with_items:
+    - { src: dnsmasq.openshift-auto-upi.pxe.conf, dest: /etc/dnsmasq.d }
+  notify: Restart dnsmasq
+  become: True
+
+- name: Is firewalld running?
+  command: firewall-cmd --state
+  changed_when: False
+  failed_when: False
+  register: firewalld
+  become: True
+
+- name: Enable tftp service on firewall
+  firewalld:
+    service: tftp
+    permanent: True
+    immediate: True
+    state: enabled
+  when: firewalld.rc == 0
+  become: True
+
+- name: Ensure required directories exist
+  file:
+    path: '{{ item }}'
+    state: directory
+  with_items:
+    - '{{ helper.tftp_dir }}'
+  become: True
+
+- name: Create {{ helper.tftp_cluster_dir }} directory
+  file:
+    dest: '{{ helper.tftp_cluster_dir }}'
+    owner: '{{ ansible_real_user_id | int }}'
+    group: '{{ ansible_real_group_id | int }}'
+    state: directory
+  become: True
+
+- name: Install syslinux
+  yum:
+    name: syslinux
+    state: present
+  become: True
+
+- name: Copy syslinux files to the {{ helper.tftp_cluster_dir }} dir
+  shell: |
+    cp -ar /usr/share/syslinux/* '{{ helper.tftp_cluster_dir }}'
+  args:
+    creates: '{{ helper.tftp_cluster_dir }}/pxelinux.0'

@@ -1,0 +1,5 @@
+- name: Install prerequisities
+  import_tasks: prereqs.yml
+
+- name: Run DNS verify script
+  import_tasks: run.yml

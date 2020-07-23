@@ -1,0 +1,29 @@
+- name: Waiting since {{ lookup("pipe", "date +%r") }} for the bootstrap to complete
+  command: |
+    {{ helper.install_exe }} wait-for bootstrap-complete --dir '{{ helper.install_conf_dir }}'
+  changed_when: False
+
+- name: Bootstrap complete
+  set_fact:
+    msg: |
+      *** BOOTSTRAP COMPLETE ***
+
+      Next steps:
+
+      1. You must remove the bootstrap machine from the load balancer at this point. I recommend to
+         simply shut the bootstrap machine down.
+
+      2. You can check the health of your cluster using:
+
+         KUBECONFIG={{ helper.install_conf_dir }}/auth/kubeconfig {{ helper.oc_exe }} get clusteroperator
+
+         and
+
+         KUBECONFIG={{ helper.install_conf_dir }}/auth/kubeconfig {{ helper.oc_exe }} get clusterversion
+
+      3. Note that it will take a while for the cluster operators to complete the cluster installation.
+         You can wait for the cluster installation to complete using:
+
+         KUBECONFIG={{ helper.install_conf_dir }}/auth/kubeconfig {{ helper.install_exe }} wait-for install-complete --dir {{ helper.install_conf_dir }}
+
+- debug: msg="{{ msg.split('\n') }}"

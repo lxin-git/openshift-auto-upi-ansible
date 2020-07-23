@@ -1,0 +1,7 @@
+- hosts: helper
+  tasks:
+    - import_role:
+        name: dnsmasq
+
+    - import_role:
+        name: dhcp_server

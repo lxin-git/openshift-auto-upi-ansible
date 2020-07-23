@@ -1,0 +1,10 @@
+- hosts: helper
+  tasks:
+    - import_role:
+        name: dnsmasq
+
+    - import_role:
+        name: web_server
+
+    - import_role:
+        name: pxe_server

@@ -1,0 +1,25 @@
+- name: Ensure required directories exist
+  file:
+    path: '{{ item }}'
+    state: directory
+  with_items:
+    - '{{ helper.install_conf_dir }}'
+
+- name: Copy install-config.yaml to the {{ helper.install_conf_dir }} directory
+  template:
+    src: files/common/install-config.yaml
+    dest: '{{ helper.install_conf_dir }}'
+
+- name: Create a backup copy of install-config.yaml as the installer deletes the original
+  template:
+    src: files/common/install-config.yaml
+    dest: '{{ helper.install_conf_dir }}/install-config.backup.yaml'
+    backup: True
+
+- name: Create Kubernetes manifests # noqa 301
+  command: |
+    {{ helper.install_exe }} create manifests --dir '{{ helper.install_conf_dir }}'
+
+- name: Create ignition configs # noqa 301
+  command: |
+    {{ helper.install_exe }} create ignition-configs --dir '{{ helper.install_conf_dir }}'

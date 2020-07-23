@@ -1,0 +1,45 @@
+<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
+  <name>{{ virtual_machine_names[item.hostname] }}</name>
+  <memory unit='GiB'>{{ item.memory_gb }}</memory>
+  <vcpu>{{ item.num_cpus }}</vcpu>
+  <os>
+    <type>hvm</type>
+    <bootmenu enable="yes"/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <clock offset="utc">
+    <timer name="pit" tickpolicy="delay"/>
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="hpet" present="no"/>
+  </clock>
+  <devices>
+    <disk type='volume' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source pool='{{ libvirt.pool_name }}' volume='{{ virtual_machine_names[item.hostname] }}' />
+      <target bus="sata" dev="sda"/>
+      <boot order='1'/>
+    </disk>
+    <interface type='network'>
+      <mac address='{{ item.macaddr }}'/>
+      <source network='{{ libvirt.network_name }}'/>
+      <model type='virtio'/>
+      <boot order='2'/>
+    </interface>
+    <input type='mouse' bus='ps2'/>
+    <input type='keyboard' bus='ps2'/>
+    <serial type="pty"/>
+    <graphics type="vnc" autoport="yes" keymap="en-us" listen="127.0.0.1"/>
+    <video>
+      <model type="cirrus"/>
+    </video>
+  </devices>
+{% if libvirt_pass_ignition_via_fwcfg %}
+  <qemu:commandline>
+    <qemu:arg value="-fw_cfg"/>
+    <qemu:arg value="name=opt/com.coreos/config,file={{ libvirt_ignition_path.stdout_lines.0 }}"/>
+  </qemu:commandline>
+{% endif %}
+</domain>

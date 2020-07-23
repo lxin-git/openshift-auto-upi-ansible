@@ -1,0 +1,13 @@
+vsphere:
+  vcenter_hostname: photon-machine
+  vcenter_username: administrator@mysso.com
+  vcenter_password: ''
+  # Verify server certificate when connecting to vSphere
+  validate_certs: False
+  datacenter_name: Datacenter
+  datastore_name: Datastore
+  cluster_name: Cluster
+  network_name: VM Network
+  # Ensuring that folder name matches the cluster name specified in the install-config.yaml file
+  target_folder: '{{ openshift_install_config.name }}'
+  template_name: RHCOS

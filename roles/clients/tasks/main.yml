@@ -1,0 +1,39 @@
+- name: Ensure required directories exist
+  file:
+    path: '{{ item }}'
+    state: directory
+  with_items:
+    - '{{ helper.install_bin_dir }}'
+
+- name: Download openshift-install archive {{ openshift_installer.archive_url }}
+  get_url:
+    url: '{{ openshift_installer.archive_url }}'
+    dest: '{{ helper.install_bin_dir }}/{{ openshift_installer.archive_url | basename }}'
+    checksum: 'sha256:{{ openshift_installer.sha256sum_url }}'
+
+- name: Extract openshift-install
+  unarchive:
+    src: '{{ helper.install_bin_dir }}/{{ openshift_installer.archive_url | basename }}'
+    dest: '{{ helper.install_bin_dir }}'
+    creates: '{{ helper.install_exe }}'
+
+- name: Download oc client archive {{ openshift_client.archive_url }}
+  get_url:
+    url: '{{ openshift_client.archive_url }}'
+    dest: '{{ helper.install_bin_dir }}/{{ openshift_client.archive_url | basename }}'
+    checksum: 'sha256:{{ openshift_client.sha256sum_url }}'
+
+- name: Extract oc client
+  unarchive:
+    src: '{{ helper.install_bin_dir }}/{{ openshift_client.archive_url | basename }}'
+    dest: '{{ helper.install_bin_dir }}'
+    creates: '{{ helper.oc_exe }}'
+
+- name: Get installer info
+  command: '{{ helper.install_exe }} version'
+  changed_when: False
+  register: installer_version
+
+- name: Show installer info
+  debug:
+    var: installer_version.stdout_lines
